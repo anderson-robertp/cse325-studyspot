@@ -1,0 +1,154 @@
+@page "/appointments/edit/{ReservationId:guid}"
+@using System.Net
+@using System.Net.Http.Json
+@using StudySpot.Models
+@using StudySpot.DTOs
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Appointment</PageTitle>
+
+<h1>Edit Appointment</h1>
+
+@if (loading)
+{
+    <p>Loading appointment...</p>
+}
+else if (!string.IsNullOrWhiteSpace(message))
+{
+    <p class="calendar-error">@message</p>
+}
+else if (reservation is not null)
+{
+    <div class="appointment-form">
+        <label class="form-group">
+            Room
+            <select class="form-control" @bind="reservation.RoomId">
+                @foreach (var room in rooms)
+                {
+                    <option value="@room.RoomId">@room.RoomName</option>
+                }
+            </select>
+        </label>
+
+        <label class="form-group">
+            Date
+            <input class="form-control" type="date" @bind="selectedDate" />
+        </label>
+
+        <label class="form-group">
+            Time
+            <select class="form-control" @bind="selectedHour">
+                @for (var hour = 10; hour < 17; hour++)
+                {
+                    <option value="@hour">@DateTime.Today.AddHours(hour).ToString("h:mm tt")</option>
+                }
+            </select>
+        </label>
+
+        <div class="reservation-actions">
+            <button class="btn-primary" disabled="@saving" @onclick="SaveAppointment">Save Changes</button>
+            <button class="appointment-cancel" disabled="@saving" @onclick="Cancel">Cancel</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid ReservationId { get; set; }
+
+    private List<Room> rooms = new();
+    private Reservation? reservation;
+    private DateTime selectedDate;
+    private int selectedHour;
+    private bool loading = true;
+    private bool saving;
+    private string message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var appointments = await Http.GetFromJsonAsync<List<Reservation>>("api/Reservation/mine") ?? new();
+            reservation = appointments.FirstOrDefault(item => item.ReservationId == ReservationId);
+
+            if (reservation is null)
+            {
+                message = "That appointment could not be found.";
+                return;
+            }
+
+            rooms = await Http.GetFromJsonAsync<List<Room>>("api/Rooms") ?? new();
+            selectedDate = reservation.StartTime.Date;
+            selectedHour = reservation.StartTime.Hour;
+        }
+        catch (HttpRequestException)
+        {
+            message = "Start the server project to edit appointments.";
+        }
+        catch
+        {
+            message = "Could not load that appointment.";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task SaveAppointment()
+    {
+        if (reservation is null || saving)
+        {
+            return;
+        }
+
+        saving = true;
+        message = "";
+
+        reservation.StartTime = new DateTime(
+            selectedDate.Year,
+            selectedDate.Month,
+            selectedDate.Day,
+            selectedHour,
+            0,
+            0,
+            DateTimeKind.Utc);
+        reservation.EndTime = reservation.StartTime.AddHours(1);
+
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/Reservation/{reservation.ReservationId}", reservation);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/reservations");
+            }
+            else if (response.StatusCode == HttpStatusCode.Conflict)
+            {
+                message = "That time is already reserved.";
+            }
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                message = "Could not update that appointment.";
+            }
+        }
+        catch (HttpRequestException)
+        {
+            message = "Start the server project to update appointments.";
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/reservations");
+    }
+}

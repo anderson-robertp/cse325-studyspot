@@ -1,0 +1,141 @@
+@page "/admin"
+
+@inject RoomService RoomService
+@inject UserService UserService
+@inject ReservationService ReservationService
+@inject AmenityService AmenityService
+@inject NotificationService NotificationService
+
+<PageTitle>Administration Dashboard</PageTitle>
+
+<h1>Administration Dashboard</h1>
+
+<p>Welcome to the administration dashboard. Here you can manage users, rooms, and reservations.</p>
+<div class="mt-4">
+    <h3>Quick Actions</h3>
+    <div class="btn-group" role="group">
+        <NavLink class="btn btn-primary" href="admin" ActiveClass="active">Dashboard</NavLink>
+        <NavLink class="btn btn-primary" href="admin/usermanager">Manage Users</NavLink>
+        <NavLink class="btn btn-primary" href="admin/roommanager">Manage Rooms</NavLink>
+        <NavLink class="btn btn-primary" href="admin/reservationmanager">Manage Reservations</NavLink>
+        <NavLink class="btn btn-primary" href="admin/amenitymanager">Manage Amenities</NavLink>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(NotificationService.SuccessMessage))
+{
+    <div class="alert alert-success">
+        @NotificationService.SuccessMessage
+    </div>
+}
+
+<div class="row">
+
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Rooms</h5>
+                <h2>@RoomCount</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Users</h5>
+                <h2>@UserCount</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Reservations</h5>
+                <h2>@ReservationCount</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Amenities</h5>
+                <h2>@AmenityCount</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <h3>Upcoming Reservations</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Reservation ID</th>
+                <th>User</th>
+                <th>Room</th>
+                <th>Date</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var upcomingReservationsDto in UpComingReservations)
+            {
+                <tr>
+                    <td>@upcomingReservationsDto.ReservationId</td>
+                    <td>@upcomingReservationsDto.Email</td>
+                    <td>@upcomingReservationsDto.RoomName</td>
+                    <td>@upcomingReservationsDto.ReservationDate.ToShortDateString()</td>
+                    <td>@upcomingReservationsDto.ReservationTime.ToString(@"hh\:mm")</td>
+                </tr>
+            }
+            <tr>
+                <td colspan="5" class="text-center">No upcoming reservations.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-4">
+    <h3>Most Popular Rooms</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Room ID</th>
+                <th>Room Name</th>
+                <th>Number of Reservations</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var room in MostPopularRooms)
+            {
+                <tr>
+                    <td>@room.RoomId</td>
+                    <td>@room.RoomName</td>
+                    <td>@room.ReservationCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private int RoomCount { get; set; }
+    private int UserCount { get; set; }
+    private int ReservationCount { get; set; }
+    private int AmenityCount { get; set; }
+    private List<RoomReservationCountDto> MostPopularRooms { get; set; } = new List<RoomReservationCountDto>();
+    private List<UpcomingReservationsDto> UpComingReservations { get; set; } = new List<UpcomingReservationsDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        RoomCount = await RoomService.GetRoomCountAsync();
+        UserCount = await UserService.GetUserCountAsync();
+        ReservationCount = await ReservationService.GetReservationCountAsync();
+        AmenityCount = await AmenityService.GetAmenityCountAsync();
+        MostPopularRooms = await ReservationService.GetReservationCountsAsync();
+        UpComingReservations = await ReservationService.GetUpcomingReservationsAsync();
+    }
+}

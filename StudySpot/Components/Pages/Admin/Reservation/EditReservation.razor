@@ -1,0 +1,75 @@
+@page "/admin/reservationmanager/edit/{ReservationId:Guid}"
+
+@inject ReservationService ReservationService
+@inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit Reservation</PageTitle>
+<h1>Edit Reservation</h1>
+
+<div>
+    <!-- Message to indicate successful addition of a room -->
+    @if (successMessage != null)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+</div>
+
+<PageTitle>Edit Reservation</PageTitle>
+<h1>Edit Reservation</h1>
+
+<div>
+    <p>This is the edit reservation page.</p>
+    <form Model="@editReservation" OnValidSubmit="HandleValidSubmit">
+        <!-- Add form fields for reservation details here -->
+        <div class="form-group">
+            <label for="startDate">Start Date</label>
+            <input type="date" id="startDate" class="form-control" @bind="editReservation.StartTime" required />
+        </div>
+        <div class="form-group">
+            <label for="endDate">End Date</label>
+            <input type="date" id="endDate" class="form-control" @bind="editReservation.EndTime" required />
+        </div>
+        <div class="form-group">
+            <label for="roomId">Room ID</label>
+            <input type="number" id="roomId" class="form-control" @bind="editReservation.RoomId" required />
+        </div>
+        <div class="form-group">
+            <label for="userId">User ID</label>
+            <input type="number" id="userId" class="form-control" @bind="editReservation.UserId" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Update Reservation</button>
+    </form>
+</div>
+
+<div>
+    <!-- Back to Reservation Manager button -->
+    <NavLink class="btn btn-secondary" href="/admin/reservationmanager">Back to Reservation Manager</NavLink>
+</div>
+
+@code{
+    [Parameter]
+    public Guid ReservationId { get; set; }
+    private Reservation editReservation = new Reservation();
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch the reservation details based on the ReservationId
+        editReservation = await ReservationService.GetReservationByIdAsync(ReservationId);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        // Call the ReservationService to update the reservation
+        var updatedReservation = await ReservationService.UpdateReservationAsync(editReservation);
+
+        if (updatedReservation != null)
+        {
+            successMessage = $"Reservation '{updatedReservation.ReservationId}' updated successfully!";
+            NotificationService.ShowSuccess($"Reservation '{updatedReservation.ReservationId}' updated successfully.");
+            // Optionally, navigate back to the Reservation Manager page after a successful update
+            NavigationManager.NavigateTo("/admin/reservationmanager");
+        }
+    }
+}

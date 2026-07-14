@@ -1,0 +1,187 @@
+@page "/user-accounts"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject UserService UserService
+
+<PageTitle>User Account</PageTitle>
+
+<h1>Account details</h1>
+<p>Manage your personal details and security settings.</p>
+
+@if (isLoading)
+{
+    <p>Loading your account information...</p>
+}
+else
+{
+    <div>
+        <div>
+            <div class="card">
+                <div>
+                    <h2>Your account</h2>
+                    <p>Your current profile information is shown below.</p>
+
+                    <div class="account-details">
+                        <p class="account-detail-label">Name</p>
+                        <p class="account-detail">@currentUser?.FirstName @currentUser?.LastName</p>
+                    </div>
+
+                    <div class="account-details">
+                        <p class="account-detail-label">Email</p>
+                        <p class="account-detail">@currentUser?.Email</p>
+                    </div>
+
+                    <div class="account-details">
+                        <p class="account-detail-label">Role</p>
+                        <p class="account-detail">@currentUser?.Role</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            @if (!string.IsNullOrWhiteSpace(statusMessage))
+            {
+                <div class="alert @statusCss" role="alert">@statusMessage</div>
+            }
+
+            <div class="card">
+                <div class="change-form">
+                    <h2>Change email</h2>
+                    <EditForm Model="emailForm" OnValidSubmit="HandleEmailSubmit">
+                        <div>
+                            <label class="form-label">New email address</label>
+                            <InputText class="form-control" @bind-Value="emailForm.Email" type="email" />
+                        </div>
+
+                        <div>
+                            <label class="form-label">Current password</label>
+                            <InputText class="form-control" @bind-Value="emailForm.CurrentPassword" type="password" />
+                        </div>
+
+                        <button class="btn btn-primary" type="submit">Update email</button>
+                    </EditForm>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="change-form">
+                    <h2>Change password</h2>
+                    <EditForm Model="passwordForm" OnValidSubmit="HandlePasswordSubmit">
+                        <div>
+                            <label class="form-label">Current password</label>
+                            <InputText class="form-control" @bind-Value="passwordForm.CurrentPassword" type="password" />
+                        </div>
+
+                        <div>
+                            <label class="form-label">New password</label>
+                            <InputText class="form-control" @bind-Value="passwordForm.NewPassword" type="password" />
+                        </div>
+
+                        <div>
+                            <label class="form-label">Confirm new password</label>
+                            <InputText class="form-control" @bind-Value="passwordForm.ConfirmNewPassword" type="password" />
+                        </div>
+
+                        <button class="btn btn-primary" type="submit">Update password</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private User? currentUser;
+    private bool isLoading = true;
+    private string statusMessage = "";
+    private string statusCss = "alert-info";
+    private UpdateEmailRequest emailForm = new();
+    private UpdatePasswordRequest passwordForm = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAccountAsync();
+    }
+
+    private async Task LoadAccountAsync()
+    {
+        isLoading = true;
+        currentUser = await UserService.GetCurrentUserAsync();
+
+        if (currentUser is not null)
+        {
+            emailForm.Email = currentUser.Email;
+        }
+
+        isLoading = false;
+    }
+
+    private async Task HandleEmailSubmit()
+    {
+        statusMessage = "";
+
+        if (string.IsNullOrWhiteSpace(emailForm.Email))
+        {
+            ShowStatus("Please enter a new email address.", "alert-warning");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(emailForm.CurrentPassword))
+        {
+            ShowStatus("Please enter your current password to confirm this change.", "alert-warning");
+            return;
+        }
+
+        var (success, message) = await UserService.UpdateEmailAsync(emailForm);
+        if (success)
+        {
+            ShowStatus(message, "alert-success");
+            await LoadAccountAsync();
+        }
+        else
+        {
+            ShowStatus(message, "alert-danger");
+        }
+    }
+
+    private async Task HandlePasswordSubmit()
+    {
+        statusMessage = "";
+
+        if (string.IsNullOrWhiteSpace(passwordForm.CurrentPassword))
+        {
+            ShowStatus("Please enter your current password.", "alert-warning");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(passwordForm.NewPassword) || passwordForm.NewPassword.Length < 8)
+        {
+            ShowStatus("Your new password must be at least 8 characters long.", "alert-warning");
+            return;
+        }
+
+        if (passwordForm.NewPassword != passwordForm.ConfirmNewPassword)
+        {
+            ShowStatus("The new password and confirmation do not match.", "alert-warning");
+            return;
+        }
+
+        var (success, message) = await UserService.UpdatePasswordAsync(passwordForm);
+        if (success)
+        {
+            ShowStatus(message, "alert-success");
+            passwordForm = new UpdatePasswordRequest();
+        }
+        else
+        {
+            ShowStatus(message, "alert-danger");
+        }
+    }
+
+    private void ShowStatus(string message, string cssClass)
+    {
+        statusMessage = message;
+        statusCss = cssClass;
+    }
+}

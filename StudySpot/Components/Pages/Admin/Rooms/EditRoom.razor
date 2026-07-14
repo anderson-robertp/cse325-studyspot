@@ -1,0 +1,134 @@
+@page "/admin/roommanager/editroom/{id:long}"
+
+@inject RoomService RoomService
+@inject AmenityService AmenityService
+@inject RoomAmenityService RoomAmenityService
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+<h1>Edit Room</h1>
+<div>
+    <!-- Message to indicate successful update of a room -->
+    @if (successMessage != null)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+</div>
+
+<form method="post" @onsubmit="HandleValidSubmit">
+    <!-- Add form fields for room details here -->
+    <div class="form-group">
+        <label for="roomName">Room Name</label>
+        <input type="text" id="roomName" class="form-control" @bind="room.RoomName" required /> 
+    </div>
+    <div class="form-group">
+        <label for="location">Location</label>
+        <input type="text" id="location" class="form-control" @bind="room.Location" required /> 
+    </div>
+    <div class="form-group">
+        <label for="capacity">Capacity</label>
+        <input type="number" id="capacity" class="form-control" @bind="room.Capacity" required /> 
+    </div>
+    <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" class="form-control" @bind="room.Description"></textarea> 
+    </div>
+    <div class="form-group">
+        <label for="amenities">Amenities</label>
+            @foreach (var amenity in allAmenities)
+            {
+                <div class="form-check">
+                    <input type="checkbox"
+                        class="form-check-input"
+                        @bind="amenity.IsSelected" />
+
+                    <label class="form-check-label">
+                        @amenity.Name
+                    </label>
+                </div>
+            }
+    </div>
+    <div class="form-group">
+        <label for="isActive">Is Active</label>
+        <input type="checkbox" id="isActive" class="form-check-input" @bind="room.IsActive" /> 
+    </div>
+    <button type="submit" class="btn btn-primary">Update Room</button>
+    <button type="button" 
+        class="btn btn-secondary" 
+        @onclick='() => NavigationManager.NavigateTo("/admin/roommanager")''>Cancel</button>
+</form>
+
+@code
+{
+    [Parameter]
+    public long id { get; set; }
+    public Amenity amenity { get; set; } = new Amenity();
+    public AmenitySelectionDto amenitySelection { get; set; } = new AmenitySelectionDto();
+    private Room room = new Room();
+    private string? successMessage;
+    private List<AmenitySelectionDto> allAmenities = new List<AmenitySelectionDto>();
+    private List<long> assignedAmenities = new List<long>();
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch the room details based on the provided ID
+        if (id > 0)
+        {
+            var fetchedRoom = await RoomService.GetRoomByIdAsync(id);
+            if (fetchedRoom != null)
+            {
+                room = fetchedRoom;
+            }
+            else
+            {
+                successMessage = "Room not found.";
+            }
+        }
+        else
+        {
+            successMessage = "Invalid room ID.";
+        }
+        allAmenities = await AmenityService.GetAmenitiesAsync();
+        assignedAmenities = (await RoomAmenityService
+            .GetAmenitiesByRoomIdAsync(id))
+            .ToList();
+        foreach (AmenitySelectionDto amenity in allAmenities)
+        {
+            amenity.IsSelected = assignedAmenities.Contains(amenity.AmenityId);
+        }
+        
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        // Call the RoomService to update the room details
+        var updatedRoom = await RoomService.UpdateRoomAsync(room);
+
+        var selectedIds = allAmenities
+            .Where(a => a.IsSelected)
+            .Select(a => a.AmenityId)
+            .ToList();
+
+        if (updatedRoom != null)
+        {
+            foreach (var amenityId in selectedIds)
+            {
+                if (!assignedAmenities.Contains(amenityId))
+                {
+                    await RoomAmenityService.CreateRoomAmenityAsync(new RoomAmenity
+                    {
+                        RoomId = room.RoomId,
+                        AmenityId = amenityId
+                    });
+                }
+            }
+            successMessage = "Room updated successfully!";
+            NotificationService.ShowSuccess($"Room '{updatedRoom.RoomName}' updated successfully.");
+            // Optionally, navigate back to the room manager page after a successful update
+            NavigationManager.NavigateTo("/admin/roommanager");
+        }
+        else
+        {
+            successMessage = "Failed to update the room. Please try again.";
+        }
+    }
+}

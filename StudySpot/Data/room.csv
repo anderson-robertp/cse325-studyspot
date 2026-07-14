@@ -1,0 +1,21 @@
+room_name,location,capacity,description,is_active
+158,first floor east wing,4,,TRUE
+156,first floor east wing,4,Small study room,TRUE
+172,first floor east wing,6,,FALSE
+190,first floor east wing,8,Study room,TRUE
+143,first floor west wing,4,Study area room,TRUE
+136A,first floor west wing,2,Small room,TRUE
+120A,first floor west wing,4,Quiet study space,TRUE
+108,first floor west wing,4,Study Room,FALSE
+272,second floor east wing,2,Small study room,TRUE
+274,second floor east wing,2,Small study room,TRUE
+276,second floor east wing,2,Small study room,TRUE
+293,second floor east wing,6,Group Study Room,TRUE
+243,second floor west wing,8,Large study room,TRUE
+225,second floor west wing,4,Study room near archives,FALSE
+209,second floor west wing,4,Group study room,TRUE
+208,second floor west wing,4,Group study room,TRUE
+321A,third floor,3,Editing Room,TRUE
+353,third floor,6,Conference Room,FALSE
+312,third floor,4,Group Study Room,TRUE
+310,third floor,4,Group Study Room,TRUE

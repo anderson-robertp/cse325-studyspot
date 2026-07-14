@@ -1,30 +1,58 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">StudySpot</a>
+<div class="top-row">
+    <div class="nav-header">
+        <a class="site-brand" href="">Study Rooms</a>
+        <button title="Navigation menu" class="menu-button" @onclick="ToggleNavMenu">
+            <span class="menu-icon"></span>
+        </button>
     </div>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav>
+        <div class="nav-item">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                Home
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+        <div class="nav-item">
+            <NavLink class="nav-link" href="floor-plan">
+                Visual Floor Plan
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+        <div class="nav-item">
+            <NavLink class="nav-link" href="reservations">
+                Reservations
+            </NavLink>
+        </div>
+
+        <div class="nav-item">
+            <NavLink class="nav-link" href="user-accounts">
+                User Account
             </NavLink>
         </div>
     </nav>
 </div>
 
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass
+    {
+        get
+        {
+            if (collapseNavMenu)
+            {
+                return "collapse";
+            }
+
+            return null;
+        }
+    }
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

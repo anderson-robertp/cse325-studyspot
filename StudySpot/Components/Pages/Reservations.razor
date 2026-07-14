@@ -1,0 +1,165 @@
+@page "/reservations"
+@using System.Net
+@using System.Net.Http.Json
+@using StudySpot.Models
+@using StudySpot.DTOs
+@inject HttpClient Http
+
+<PageTitle>Appointments</PageTitle>
+
+<h1>Appointments</h1>
+
+<div class="reservation-actions">
+    <a class="button-link" href="/floor-plan">View Floor Plan</a>
+    <a class="button-link secondary" href="/reservation-calendar">Make Appointment</a>
+</div>
+
+
+
+
+
+@if (loading)
+{
+    <p>Loading appointments...</p>
+}
+else if (needsLogin)
+{
+    <p class="calendar-note">
+        Log in to view your appointments.
+        <a href="/login">Login</a>
+    </p>
+}
+else if (!string.IsNullOrWhiteSpace(message))
+{
+    <p class="calendar-error">@message</p>
+}
+else if (reservations.Count == 0)
+{
+    <p>You do not have any appointments yet.</p>
+}
+else
+{
+    <table class="appointments-table">
+        <thead>
+            <tr>
+                <th>Room</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var reservation in reservations)
+            {
+                <tr>
+                    <td>@RoomName(reservation.RoomId)</td>
+                    <td>@reservation.StartTime.ToString("MMM d, yyyy")</td>
+                    <td>@reservation.StartTime.ToString("h:mm tt") - @reservation.EndTime.ToString("h:mm tt")</td>
+                    <td>
+                        <a class="button-link secondary" href="@($"/appointments/edit/{reservation.ReservationId}")">Edit</a>
+                        <button disabled="@deleting" @onclick="() => DeleteReservation(reservation.ReservationId)">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+
+
+
+@code {
+    private List<Reservation> reservations = new();
+    private List<Room> rooms = new();
+    private bool loading = true;
+    private bool deleting;
+    private bool needsLogin;
+    private string message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAppointments();
+    }
+
+
+
+
+    private async Task LoadAppointments()
+    {
+        loading = true;
+        message = "";
+        needsLogin = false;
+
+        try
+        {
+            var response = await Http.GetAsync("api/Reservation/mine");
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                needsLogin = true;
+                return;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                message = "Could not load your appointments.";
+                return;
+            }
+
+            reservations = await response.Content.ReadFromJsonAsync<List<Reservation>>() ?? new();
+            rooms = await Http.GetFromJsonAsync<List<Room>>("api/Rooms") ?? new();
+        }
+        catch (HttpRequestException)
+        {
+            message = "Start the server project to load appointments.";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+
+
+
+    private async Task DeleteReservation(Guid reservationId)
+    {
+        deleting = true;
+        message = "";
+
+        try
+        {
+            var response = await Http.DeleteAsync($"api/Reservation/{reservationId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                reservations.RemoveAll(reservation => reservation.ReservationId == reservationId);
+            }
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                needsLogin = true;
+            }
+            else
+            {
+                message = "Could not delete that appointment.";
+            }
+        }
+        catch (HttpRequestException)
+        {
+            message = "Start the server project to delete appointments.";
+        }
+        finally
+        {
+            deleting = false;
+        }
+    }
+
+    private string RoomName(long roomId)
+    {
+        var room = rooms.FirstOrDefault(room => room.RoomId == roomId);
+        return room?.RoomName ?? $"Room {roomId}";
+    }
+}

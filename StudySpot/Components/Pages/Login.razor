@@ -1,0 +1,85 @@
+@using StudySpot.Services
+@using StudySpot.Models
+@using StudySpot.DTOs
+@using Microsoft.AspNetCore.Components.Forms
+
+@page "/login"
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Login</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h1>Login</h1>
+
+        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText @bind-Value="loginModel.Email" id="email" class="form-control" placeholder="Enter your email" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText @bind-Value="loginModel.Password" id="password" type="password" class="form-control" placeholder="Enter your password" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">@errorMessage</div>
+            }
+
+            <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
+                @(isLoading ? "Logging in..." : "Login")
+            </button>
+        </EditForm>
+
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="/register">Create one here</a></p>
+            <p><a href="/">Back Home</a></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private bool isLoading = false;
+    private string errorMessage = "";
+
+    private class LoginModel
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = "";
+
+            var result = await AuthService.LoginAsync(loginModel.Email, loginModel.Password);
+
+            if (result.Success)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = result.Message ?? "Login failed";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Login error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

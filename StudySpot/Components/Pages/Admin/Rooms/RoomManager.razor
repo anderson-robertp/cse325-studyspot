@@ -1,0 +1,102 @@
+@page "/admin/roommanager"
+
+@inject RoomService RoomService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+<h1>Room Manager</h1>
+
+<div class="mt-4">
+    <h3>Quick Actions</h3>
+    <div class="btn-group" role="group">
+        <NavLink class="btn btn-primary" href="admin">Dashboard</NavLink>
+        <NavLink class="btn btn-primary" href="admin/usermanager">Manage Users</NavLink>
+        <NavLink class="btn btn-primary" href="admin/roommanager" ActiveClass="active">Manage Rooms</NavLink>
+        <NavLink class="btn btn-primary" href="admin/reservationmanager">Manage Reservations</NavLink>
+        <NavLink class="btn btn-primary" href="admin/amenitymanager">Manage Amenities</NavLink>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(NotificationService.SuccessMessage))
+{
+    <div class="alert alert-success">
+        @NotificationService.SuccessMessage
+    </div>
+}
+
+<div class=""mt-4">
+    <h3>Manage Rooms</h3>
+    <div class="btn-group" role="group">
+        <NavLink class="btn btn-primary" href="admin/roommanager/addroom" @onclick="AddRoom">Add Room</NavLink>
+    </div>
+    <!-- Example: Display a list of rooms -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Room Name</th>
+                <th>Location</th>
+                <th>Capacity</th>
+                <th>Description</th>
+                <th>Is Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Loop through rooms and display them here -->
+            @foreach (var room in Rooms)
+            {
+                <tr>
+                    <td>@room.RoomName</td>
+                    <td>@room.Location</td>
+                    <td>@room.Capacity</td>
+                    <td>@room.Description</td>
+                    <td>@room.IsActive</td>
+                    <td>
+                        <!-- Add buttons for editing and deleting rooms -->
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditRoom(room.RoomId)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteRoom(room.RoomId)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+
+    private List<Room> Rooms { get; set; } = new List<Room>();
+
+    private async Task DeleteRoom(long roomId)
+    {
+        // Confirm deletion with the user
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete room with ID {roomId}?");
+        if (confirmed)
+        {
+            // Call the RoomService to delete the room
+            await RoomService.DeleteRoomAsync(roomId);
+
+            // Refresh the list of rooms after deletion
+            Rooms = await RoomService.GetRoomsAsync();
+        }
+    }
+
+    private async Task EditRoom(long roomId)
+    {
+        // Navigate to the edit room page with the room ID
+        NavigationManager.NavigateTo($"/admin/roommanager/editroom/{roomId}");
+    }
+
+    private async Task AddRoom()
+    {
+        // Navigate to the add room page
+        NavigationManager.NavigateTo("/admin/roommanager/addroom");
+    }
+    
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch the list of rooms from the RoomService
+        Rooms = await RoomService.GetRoomsAsync();
+    }
+}

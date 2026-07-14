@@ -1,0 +1,72 @@
+@page "/admin/roommanager/addroom"
+
+@inject RoomService RoomService
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+<h1>Add Room</h1>
+<div>
+    <!-- Message to indicate successful addition of a room -->
+    @if (successMessage != null)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+</div>
+
+<div>
+    <p>This is the add room page.</p>
+    <form method="post" @onsubmit="HandleValidSubmit">
+        <!-- Add form fields for room details here -->
+        <div class="form-group">
+            <label for="roomName">Room Name</label>
+            <input type="text" id="roomName" class="form-control" @bind="newRoom.RoomName" required />
+        </div>
+        <div class="form-group">
+            <label for="location">Location</label>
+            <input type="text" id="location" class="form-control" @bind="newRoom.Location" required />
+        </div>
+        <div class="form-group">
+            <label for="capacity">Capacity</label>
+            <input type="number" id="capacity" class="form-control" @bind="newRoom.Capacity" required />
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" class="form-control" @bind="newRoom.Description"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="isActive">Is Active</label>
+            <input type="checkbox" id="isActive" class="form-check-input" @bind="newRoom.IsActive" />
+        </div>
+        <button type="submit" class="btn btn-primary">Add Room</button>
+
+    </form>
+</div>
+<div>
+    <!-- Back to Room Manager button -->
+    <NavLink class="btn btn-secondary" href="/admin/roommanager">Back to Room Manager</NavLink>
+</div>
+
+@code
+{
+    // Add any necessary code for adding a room here
+    private Room newRoom = new Room();
+    private string? successMessage;
+
+    private async Task HandleValidSubmit()
+    {
+        // Call the RoomService to add the new room
+        var addedRoom = await RoomService.CreateRoomAsync(newRoom);
+
+        if (addedRoom != null)
+        {
+            successMessage = $"Room '{addedRoom.RoomName}' added successfully!";
+            NotificationService.ShowSuccess($"Room '{addedRoom.RoomName}' added successfully.");
+            // Optionally, reset the form or navigate back to the room manager page
+            newRoom = new Room(); // Reset the form
+        }
+        else
+        {
+            successMessage = "Failed to add room. Please try again.";
+        }
+    }
+}

@@ -1,0 +1,108 @@
+@using StudySpot.Services
+@using StudySpot.Models
+@using StudySpot.DTOs
+@using Microsoft.AspNetCore.Components.Forms
+@page "/register"
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Create Account</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h1>Create Account</h1>
+
+        <EditForm Model="registerModel" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <InputText @bind-Value="registerModel.FirstName" id="firstName" class="form-control" placeholder="Enter first name" />
+            </div>
+
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <InputText @bind-Value="registerModel.LastName" id="lastName" class="form-control" placeholder="Enter last name" />
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText @bind-Value="registerModel.Email" id="email" type="email" class="form-control" placeholder="Enter email address" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText @bind-Value="registerModel.Password" id="password" type="password" class="form-control" placeholder="Enter password (min 8 characters)" />
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <InputText @bind-Value="registerModel.ConfirmPassword" id="confirmPassword" type="password" class="form-control" placeholder="Confirm password" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">@errorMessage</div>
+            }
+
+            <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
+                @(isLoading ? "Creating Account..." : "Create Account")
+            </button>
+        </EditForm>
+
+        <div class="auth-footer">
+            <p>Already have an account? <a href="/login">Login here</a></p>
+            <p><a href="/">Back Home</a></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterModel registerModel = new();
+    private bool isLoading = false;
+    private string errorMessage = "";
+
+    private class RegisterModel
+    {
+        public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string ConfirmPassword { get; set; } = "";
+    }
+
+    private async Task HandleRegister()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = "";
+
+            var result = await AuthService.RegisterAsync(
+                registerModel.FirstName,
+                registerModel.LastName,
+                registerModel.Email,
+                registerModel.Password,
+                registerModel.ConfirmPassword
+            );
+
+            if (result.Success)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = result.Message ?? "Registration failed";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Registration error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

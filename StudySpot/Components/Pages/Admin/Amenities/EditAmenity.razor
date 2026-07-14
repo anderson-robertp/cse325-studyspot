@@ -1,0 +1,69 @@
+@page "/admin/amenitymanager/edit/{AmenityId:int}"
+
+@inject AmenityService AmenityService
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+<PageTitle>Edit Amenity</PageTitle>
+<h1>Edit Amenity</h1>
+
+<div>
+    <!-- Message to indicate successful addition of a room -->
+    @if (successMessage != null)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+</div>
+
+<div>
+    <p>This is the edit amenity page.</p>
+    <form method="post" @onsubmit="HandleValidSubmit">
+        <!-- Add form fields for amenity details here -->
+        <div class="form-group">
+            <label for="amenityName">Amenity Name</label>
+            <input type="text" id="amenityName" class="form-control" @bind="editAmenity.Name" required />
+        </div>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" class="form-control" @bind="editAmenity.Description"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Amenity</button>
+    </form>
+</div>
+
+<div>
+    <!-- Back to Amenity Manager button -->
+    <NavLink class="btn btn-secondary" href="/admin/amenitymanager">Back to Amenity Manager</NavLink>
+</div>
+
+@code
+{
+    [Parameter]
+    public int AmenityId { get; set; }
+
+    private Amenity editAmenity = new Amenity();
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch the amenity details based on the AmenityId
+        editAmenity = await AmenityService.GetAmenityByIdAsync(AmenityId);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        // Call the AmenityService to update the amenity
+        var updatedAmenity = await AmenityService.UpdateAmenityAsync(editAmenity);
+
+        if (updatedAmenity != null)
+        {
+            successMessage = "Amenity updated successfully!";
+            // Optionally, navigate back to the Amenity Manager page after updating
+            NavigationManager.NavigateTo("/admin/amenitymanager");
+        }
+        else
+        {
+            successMessage = "Failed to update amenity. Please try again.";
+        }
+    }
+}

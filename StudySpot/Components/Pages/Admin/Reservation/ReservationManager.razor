@@ -1,0 +1,77 @@
+@page "/admin/reservationmanager"
+
+@inject ReservationService ReservationService
+@inject NotificationService NotificationService
+
+<h1>Reservation Manager</h1>
+
+<div class="mt-4">
+    <h3>Quick Actions</h3>
+    <div class="btn-group" role="group">
+        <NavLink class="btn btn-primary" href="admin">Dashboard</NavLink>
+        <NavLink class="btn btn-primary" href="admin/usermanager">Manage Users</NavLink>
+        <NavLink class="btn btn-primary" href="admin/roommanager">Manage Rooms</NavLink>
+        <NavLink class="btn btn-primary" href="admin/reservationmanager" ActiveClass="active">Manage Reservations</NavLink>
+        <NavLink class="btn btn-primary" href="admin/amenitymanager">Manage Amenities</NavLink>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(NotificationService.SuccessMessage))
+{
+    <div class="alert alert-success">
+        @NotificationService.SuccessMessage
+    </div>
+}
+
+<div class="mt-4">
+    <h3>Manage Reservations</h3>
+    <div class="btn-group" role="group">
+        <NavLink class="btn btn-primary" href="admin/reservationmanager/addreservation">Add Reservation</NavLink>
+    </div>
+    <!-- Example: Display a list of reservations -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Reservation ID</th>
+                <th>User</th>
+                <th>Room</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Loop through reservations and display them here -->
+            @foreach (var reservation in ReservationDtos)
+            {
+                <tr>
+                    <td>@reservation.ReservationId</td>
+                    <td>@reservation.Email</td>
+                    <td>@reservation.RoomName</td>
+                    <td>@reservation.StartDate.ToShortDateString()</td>
+                    <td>@reservation.EndDate.ToShortDateString()</td>
+                    <td>@reservation.Status</td>
+                    <td>
+                        <!-- Add buttons for editing and deleting reservations -->
+                        <button class="btn btn-sm btn-primary">Edit</button>
+                        <button class="btn btn-sm btn-danger">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+
+    private List<Reservation> Reservations { get; set; } = new List<Reservation>();
+    private List<ReservationManagerDto> ReservationDtos { get; set; } = new List<ReservationManagerDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch the list of reservations from the service
+        Reservations = await ReservationService.GetReservationsAsync();
+        ReservationDtos = await ReservationService.GetReservationsForManagerAsync();
+    }
+}

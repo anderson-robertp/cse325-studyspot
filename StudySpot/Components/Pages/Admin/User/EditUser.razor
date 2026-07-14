@@ -1,0 +1,84 @@
+@page "/admin/usermanager/edit/{UserId:guid}"
+
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+@inject UserService UserService
+
+<h1>Edit User</h1>
+<div>
+    <!-- Message to indicate successful update of a room -->
+    @if (successMessage != null)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+</div>
+
+<div class="mt-4">
+    <h3>Quick Actions</h3>
+    <div class="btn-group" role="group">
+        <NavLink class="btn btn-primary" href="admin">Dashboard</NavLink>
+        <NavLink class="btn btn-primary" href="admin/usermanager" ActiveClass="active">Manage Users</NavLink>
+        <NavLink class="btn btn-primary" href="admin/roommanager">Manage Rooms</NavLink>
+        <NavLink class="btn btn-primary" href="admin/reservationmanager">Manage Reservations</NavLink>
+        <NavLink class="btn btn-primary" href="admin/amenitymanager">Manage Amenities</NavLink>
+    </div>
+</div>
+
+<div>
+    <h3>Edit User Details</h3>
+    <EditForm Model="@user" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="firstName">First Name</label>
+            <InputText id="firstName" class="form-control" @bind-Value="user.FirstName" />
+            <label for="lastName">Last Name</label>
+            <InputText id="lastName" class="form-control" @bind-Value="user.LastName" />
+            <label for="email">Email</label>
+            <InputText id="email" class="form-control" @bind-Value="user.Email" />
+            <label for="role">Role</label>
+            <InputSelect id="role" class="form-control" @bind-Value="user.Role">
+                <option value="">Select Role</option>
+                <option value="Admin">Admin</option>
+                <option value="User">User</option>
+            </InputSelect>
+        </div>
+        <button type="submit" class="btn btn-primary" @onclick="UpdateUser">Update User</button>
+        <button type="button" class="btn btn-secondary" @onclick='() => NavigationManager.NavigateTo("/admin/usermanager")'>Cancel</button>
+    </EditForm>
+
+</div>
+
+@code {
+    private User user = new User();
+    [Parameter]
+    public Guid UserId { get; set; }
+
+    private string? successMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Fetch the user details from the UserService
+        user = await UserService.GetUserByIdAsync(UserId);
+    }
+
+    private async Task UpdateUser()
+    {
+        // Update the user details using the UserService
+        await UserService.UpdateUserAsync(UserId, user);
+        successMessage = "User updated successfully!";
+        NotificationService.ShowSuccess($"User '{user.FirstName} {user.LastName}' updated successfully.");
+        NavigationManager.NavigateTo("/admin/usermanager");
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        // Update the user details using the UserService
+        await UserService.UpdateUserAsync(UserId, user);
+        NotificationService.ShowSuccess($"User '{user.FirstName} {user.LastName}' updated successfully.");
+        NavigationManager.NavigateTo("/admin/usermanager");
+    }
+}

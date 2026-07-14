@@ -1,0 +1,97 @@
+@page "/admin/usermanager"
+
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+<PageTitle>User Manager</PageTitle>
+<h1>User Manager</h1>
+
+<div class="mt-4">
+    <h3>Quick Actions</h3>
+    <div class="btn-group" role="group">
+        <NavLink class="btn btn-primary" href="admin">Dashboard</NavLink>
+        <NavLink class="btn btn-primary" href="admin/usermanager" ActiveClass="active">Manage Users</NavLink>
+        <NavLink class="btn btn-primary" href="admin/roommanager">Manage Rooms</NavLink>
+        <NavLink class="btn btn-primary" href="admin/reservationmanager">Manage Reservations</NavLink>
+        <NavLink class="btn btn-primary" href="admin/amenitymanager">Manage Amenities</NavLink>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(NotificationService.SuccessMessage))
+{
+    <div class="alert alert-success">
+        @NotificationService.SuccessMessage
+    </div>
+}
+
+<!-- Add your user management functionality here -->
+<!-- For example, you can display a list of users, allow adding/editing/deleting users, etc. -->
+
+<div class="mt-4">
+    <h3>Manage Users</h3>
+    <!-- Example: Display a list of users -->
+    <div>
+        <div class="btn-group" role="group">
+            <NavLink class="btn btn-primary" href="admin/usermanager/adduser" @onclick="AddUser">Add User</NavLink>
+        </div>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Loop through users and display them here -->
+            @foreach (var user in Users)
+            {
+                <tr>
+                    <td>@user.FirstName @user.LastName</td>
+                    <td>@user.Email</td>
+                    <td>@user.Role</td>
+                    <td>
+                        <!-- Add buttons for editing and deleting users -->
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditUser(user.UserId)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteUser(user.UserId)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+
+    private List<UserListDto> Users { get; set; } = new List<UserListDto>();
+
+    private void EditUser(Guid userId)
+    {
+        // Navigate to the edit user page with the selected user's ID
+        NavigationManager.NavigateTo($"/admin/usermanager/edit/{userId}");
+    }
+
+    private async Task DeleteUser(Guid userId)
+    {
+        // Call the UserService to delete the user
+        await UserService.DeleteUserAsync(userId);
+        // Refresh the user list after deletion
+        Users = await UserService.GetAllUsersAsync();
+    }
+
+    private void AddUser()
+    {
+        // Navigate to the add user page
+        NavigationManager.NavigateTo("/admin/usermanager/adduser");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch users from the UserService
+        Users = await UserService.GetAllUsersAsync();
+    }
+
+}

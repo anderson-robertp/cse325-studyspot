@@ -1,0 +1,185 @@
+@page "/floor-plan"
+
+<PageTitle>Visual Floor Plan</PageTitle>
+
+<h1>Visual Floor Plan</h1>
+
+<p>Pick a floor map, then click a room marker to see details.</p>
+
+<div class="floor-tabs">
+    @foreach (var floor in Floors)
+    {
+        <button class="floor-tab @(selectedFloor == floor.Name ? "selected" : "")"
+                @onclick="() => PickFloor(floor.Name)">
+            @floor.Name
+        </button>
+    }
+</div>
+
+<div class="floor-layout">
+    <section class="map-card">
+        <h2>@selectedFloor</h2>
+
+        <div class="map-image-wrap">
+            <img class="floor-map-image" src="@GetCurrentFloor().Image" alt="@selectedFloor map" />
+
+            @foreach (var room in GetCurrentFloor().Rooms)
+            {
+                <button class="room-pin @RoomClass(room)"
+                        style="@RoomStyle(room)"
+                        @onclick="() => PickRoom(room)">
+                    @room.Name
+                </button>
+            }
+        </div>
+    </section>
+
+    <section class="room-detail">
+        @if (selectedRoom is null)
+        {
+            <h2>Room Info</h2>
+            <p>Choose a room marker on the map to see the room details.</p>
+        }
+        else
+        {
+            <h2>@selectedRoom.Name</h2>
+            <p><strong>Floor map:</strong> @selectedFloor</p>
+            <p><strong>Capacity:</strong> @selectedRoom.Capacity people</p>
+            <p><strong>Equipment:</strong> @selectedRoom.Equipment</p>
+
+            <a class="button-link" href="@CalendarLink">View Calendar</a>
+        }
+    </section>
+</div>
+
+@code {
+    private string selectedFloor = "First Floor East";
+    private StudyRoom? selectedRoom;
+
+    private void PickFloor(string floor)
+    {
+        selectedFloor = floor;
+        selectedRoom = null;
+    }
+
+    private void PickRoom(StudyRoom room)
+    {
+        selectedRoom = room;
+    }
+
+    private string RoomClass(StudyRoom room)
+    {
+        if (selectedRoom == room)
+        {
+            return "picked";
+        }
+
+        return "";
+    }
+
+    private string RoomStyle(StudyRoom room)
+    {
+        return $"left: {room.Left}%; top: {room.Top}%;";
+    }
+
+    private string CalendarLink
+    {
+        get
+        {
+            if (selectedRoom == null)
+            {
+                return "/reservation-calendar";
+            }
+
+            return $"/reservation-calendar?floor={Uri.EscapeDataString(selectedFloor)}&room={Uri.EscapeDataString(selectedRoom.Name)}";
+        }
+    }
+
+    private readonly List<FloorInfo> Floors = new()
+    {
+        new FloorInfo("First Floor East", "/assets/floors/floor-1.png", new()
+        {
+            new StudyRoom("190", 8, "Study room", 39, 67),
+            new StudyRoom("156", 4, "Small study room", 37, 51),
+            new StudyRoom("158", 4, "Whiteboard", 37, 45),
+            new StudyRoom("172", 6, "Large table", 63, 36)
+        }),
+
+        new FloorInfo("First Floor West", "/assets/floors/floor-2.png", new()
+        {
+            new StudyRoom("108", 4, "Study room", 56, 93),
+            new StudyRoom("120A", 4, "Quiet study space", 27, 62),
+            new StudyRoom("136A", 2, "Small room with monitor", 36, 58),
+            new StudyRoom("143", 4, "Study area room", 64, 22)
+        }),
+
+        new FloorInfo("Second Floor East", "/assets/floors/floor-3.png", new()
+        {
+            new StudyRoom("272", 2, "Small study room", 60, 51),
+            new StudyRoom("274", 2, "Small study room", 66, 51),
+            new StudyRoom("276", 2, "Small study room", 72, 51),
+            new StudyRoom("293", 6, "Group study table", 63, 65)
+        }),
+
+        new FloorInfo("Second Floor West", "/assets/floors/floor-4.png", new()
+        {
+            new StudyRoom("208", 4, "Group study room", 61, 93),
+            new StudyRoom("209", 4, "Group study room", 55, 93),
+            new StudyRoom("225", 4, "Study room near archives", 52, 38),
+            new StudyRoom("243", 8, "Large study room", 71, 19)
+        }),
+
+        new FloorInfo("Third Floor", "/assets/floors/floor-5.png", new()
+        {
+            new StudyRoom("310", 4, "Group study room", 32, 94),
+            new StudyRoom("312", 4, "Group study room", 27, 94),
+            new StudyRoom("321A", 3, "Editing room", 57, 35),
+            new StudyRoom("353", 6, "Conference room", 35, 39)
+        })
+    };
+
+    private FloorInfo GetCurrentFloor()
+    {
+        foreach (var floor in Floors)
+        {
+            if (floor.Name == selectedFloor)
+            {
+                return floor;
+            }
+        }
+
+        return Floors[0];
+    }
+
+    private class FloorInfo
+    {
+        public FloorInfo(string name, string image, List<StudyRoom> rooms)
+        {
+            Name = name;
+            Image = image;
+            Rooms = rooms;
+        }
+
+        public string Name { get; set; }
+        public string Image { get; set; }
+        public List<StudyRoom> Rooms { get; set; }
+    }
+
+    private class StudyRoom
+    {
+        public StudyRoom(string name, int capacity, string equipment, double left, double top)
+        {
+            Name = name;
+            Capacity = capacity;
+            Equipment = equipment;
+            Left = left;
+            Top = top;
+        }
+
+        public string Name { get; set; }
+        public int Capacity { get; set; }
+        public string Equipment { get; set; }
+        public double Left { get; set; }
+        public double Top { get; set; }
+    }
+}

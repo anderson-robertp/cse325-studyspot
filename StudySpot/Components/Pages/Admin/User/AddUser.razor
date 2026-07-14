@@ -1,0 +1,68 @@
+@page "/admin/usermanager/adduser"
+
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+@inject UserService UserService
+
+
+<h1>Add User</h1>
+<div>
+    <!-- Message to indicate successful addition of a user -->
+    @if (successMessage != null)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+</div>
+
+<div class="mt-4">
+    <h3>Quick Actions</h3>
+    <div class="btn-group" role="group">
+        <NavLink class="btn btn-primary" href="admin">Dashboard</NavLink>
+        <NavLink class="btn btn-primary" href="admin/usermanager" ActiveClass="active">Manage Users</NavLink>
+        <NavLink class="btn btn-primary" href="admin/roommanager">Manage Rooms</NavLink>
+        <NavLink class="btn btn-primary" href="admin/reservationmanager">Manage Reservations</NavLink>
+        <NavLink class="btn btn-primary" href="admin/amenitymanager">Manage Amenities</NavLink>
+    </div>
+</div>
+
+<div>
+    <h3>Add New User</h3>
+    <EditForm Model="@newUser" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="firstName">First Name</label>
+            <InputText id="firstName" class="form-control" @bind-Value="newUser.FirstName" />
+            <label for="lastName">Last Name</label>
+            <InputText id="lastName" class="form-control" @bind-Value="newUser.LastName" />
+            <label for="email">Email</label>
+            <InputText id="email" class="form-control" @bind-Value="newUser.Email" />
+            <label for="role">Role</label>
+            <InputSelect id="role" class="form-control" @bind-Value="newUser.Role">
+                <option value="">Select Role</option>
+                <option value="Admin">Admin</option>
+                <option value="User">User</option>
+            </InputSelect>
+        </div>
+        <button type="submit" class="btn btn-primary">Add User</button>
+        <button type="button" class="btn btn-secondary" @onclick='() => NavigationManager.NavigateTo("/admin/usermanager")'>Cancel</button>
+    </EditForm>
+</div>
+
+@code {
+    private User newUser = new User();
+    private string? successMessage;
+
+    private async Task HandleValidSubmit()
+    {
+        // Call the UserService to add the new user
+        await UserService.CreateUserAsync(newUser);
+        successMessage = "User added successfully!";
+        NotificationService.ShowSuccess($"User '{newUser.FirstName} {newUser.LastName}' added successfully.");
+        // Optionally, navigate back to the user manager page after adding
+        NavigationManager.NavigateTo("/admin/usermanager");
+    }
+}

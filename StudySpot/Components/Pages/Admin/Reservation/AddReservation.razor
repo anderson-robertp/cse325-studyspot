@@ -1,0 +1,65 @@
+@page "/admin/reservationmanager/addreservation"
+
+@inject ReservationService ReservationService
+@inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Add Reservation</PageTitle>
+<h1>Add Reservation</h1>
+
+<div>
+    <!-- Message to indicate successful addition of a room -->
+    @if (successMessage != null)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+</div>
+
+<div>
+    <p>This is the add reservation page.</p>
+    <form method="post" @onsubmit="HandleValidSubmit">
+        <!-- Add form fields for reservation details here -->
+        <div class="form-group">
+            <label for="startDate">Start Date</label>
+            <input type="date" id="startDate" class="form-control" @bind="newReservation.StartTime" required />
+        </div>
+        <div class="form-group">
+            <label for="endDate">End Date</label>
+            <input type="date" id="endDate" class="form-control" @bind="newReservation.EndTime" required />
+        </div>
+        <div class="form-group">
+            <label for="roomId">Room ID</label>
+            <input type="number" id="roomId" class="form-control" @bind="newReservation.RoomId" required />
+        </div>
+        <div class="form-group">
+            <label for="userId">User ID</label>
+            <input type="number" id="userId" class="form-control" @bind="newReservation.UserId" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Add Reservation</button>
+    </form>
+</div>
+
+<div>
+    <!-- Back to Reservation Manager button -->
+    <NavLink class="btn btn-secondary" href="/admin/reservationmanager">Back to Reservation Manager</NavLink>
+</div>
+
+@code
+{
+    private Reservation newReservation = new Reservation();
+    private string? successMessage;
+
+    private async Task HandleValidSubmit()
+    {
+        // Call the ReservationService to add the new reservation
+        var addedReservation = await ReservationService.CreateReservationAsync(newReservation);
+
+        if (addedReservation != null)
+        {
+            successMessage = $"Reservation '{addedReservation.ReservationId}' added successfully!";
+            NotificationService.ShowSuccess($"Reservation '{addedReservation.ReservationId}' added successfully.");
+            // Optionally, reset the form or navigate back to the reservation manager page
+            newReservation = new Reservation(); // Reset the form
+        }
+    }
+}

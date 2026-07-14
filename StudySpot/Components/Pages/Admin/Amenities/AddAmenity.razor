@@ -1,0 +1,62 @@
+@page "/admin/amenitymanager/add"
+
+@inject AmenityService AmenityService
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+
+<PageTitle>Add Amenity</PageTitle>
+<h1>Add Amenity</h1>
+
+<div>
+    <!-- Message to indicate successful addition of a room -->
+    @if (successMessage != null)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+</div>
+
+<div>
+    <p>This is the add amenity page.</p>
+    <form method="post" @onsubmit="HandleValidSubmit">
+        <!-- Add form fields for amenity details here -->
+        <div class="form-group">
+            <label for="amenityName">Amenity Name</label>
+            <input type="text" id="amenityName" class="form-control" @bind="newAmenity.Name" required />
+        </div>
+        <div class="form-group  ">
+            <label for="description">Description</label>
+            <textarea id="description" class="form-control" @bind="newAmenity.Description"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Amenity</button>
+    </form>
+</div>
+
+<div>
+    <!-- Back to Amenity Manager button -->
+    <NavLink class="btn btn-secondary" href="/admin/amenitymanager">Back to Amenity Manager</NavLink>
+</div>
+
+@code
+{
+    // Add any necessary code for adding an amenity here
+    private Amenity newAmenity = new Amenity();
+    private string? successMessage;
+
+    private async Task HandleValidSubmit()
+    {
+        // Call the AmenityService to add the new amenity
+        var addedAmenity = await AmenityService.CreateAmenityAsync(newAmenity);
+
+        if (addedAmenity != null)
+        {
+            successMessage = "Amenity added successfully!";
+            NotificationService.ShowSuccess($"Amenity '{newAmenity.Name}' added successfully.");
+            // Optionally, navigate back to the Amenity Manager page after adding
+            NavigationManager.NavigateTo("/admin/amenitymanager");
+        }
+        else
+        {
+            successMessage = "Failed to add amenity. Please try again.";
+        }
+    }
+}
