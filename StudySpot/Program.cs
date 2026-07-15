@@ -43,6 +43,10 @@ builder.Services.AddCascadingAuthenticationState();
 // Configuration
 builder.Configuration.AddUserSecrets<Program>();
 
+// JWT Configuration
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new Exception("JWT Key is missing from configuration.");
+
 // Database
 var connectionString =
     builder.Configuration.GetConnectionString(
@@ -90,9 +94,7 @@ builder.Services
 
                 IssuerSigningKey =
                     new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(
-                            builder.Configuration[
-                                "Jwt:SecretKey"]!)),
+                        Encoding.UTF8.GetBytes(jwtKey)),
 
                 ValidateIssuer = true,
 
