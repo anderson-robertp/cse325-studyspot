@@ -280,8 +280,8 @@ public class ReservationController : ControllerBase
                 ReservationId = r.ReservationId,
                 Email = r.User.Email ?? "",
                 RoomName = r.Room.RoomName ?? "",
-                ReservationDate = r.StartTime,
-                ReservationTime = r.StartTime.TimeOfDay
+                StartTime = r.StartTime,
+                EndTime = r.EndTime
             })
             .ToListAsync();
     }
@@ -297,8 +297,8 @@ public class ReservationController : ControllerBase
                 ReservationId = r.ReservationId,
                 Email = r.User.Email ?? "",
                 RoomName = r.Room.RoomName ?? "",
-                StartDate = r.StartTime,
-                EndDate = r.EndTime,
+                StartTime = r.StartTime,
+                EndTime = r.EndTime,
                 Status = r.Status ?? ""
             })
             .ToListAsync();

@@ -3,15 +3,18 @@ using StudySpot.Models;
 using StudySpot.DTOs;
 using Microsoft.EntityFrameworkCore;
 using StudySpot.Data;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace StudySpot.Services;
 public class ReservationService
 {
     private readonly StudySpotContext _context;
+    private readonly AuthenticationStateProvider _authenticationStateProvider;
 
-    public ReservationService(StudySpotContext context)
+    public ReservationService(StudySpotContext context, AuthenticationStateProvider authenticationStateProvider)
     {
         _context = context;
+        _authenticationStateProvider = authenticationStateProvider;
     }
 
     public async Task<List<Reservation>> GetReservationsAsync()
@@ -75,7 +78,7 @@ public class ReservationService
 
     public async Task<List<UpcomingReservationsDto>> GetUpcomingReservationsAsync()
     {
-        var today = DateTime.Now;
+        var today = DateTime.UtcNow;
 
         return await _context.Reservations
             .Where(r => r.StartTime >= today)
@@ -103,6 +106,17 @@ public class ReservationService
                 StartTime = r.StartTime,
                 EndTime = r.EndTime
             })
+            .ToListAsync();
+    }
+    public async Task<List<Reservation>> GetMyReservationsAsync()
+    {
+        var authenticationState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+        var currentUserId = user.FindFirst("sub")?.Value;
+        var currentUserGuid = Guid.Parse(currentUserId);
+        return await _context.Reservations
+            .Where(r => r.UserId == currentUserGuid)
+            .OrderBy(r => r.StartTime)
             .ToListAsync();
     }
 }

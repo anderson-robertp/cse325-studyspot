@@ -71,6 +71,7 @@ builder.Services.AddScoped<AmenityService>();
 builder.Services.AddScoped<RoomAmenityService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<AuthenticationService>();
+builder.Services.AddScoped<AuthService>();
 
 
 // Local storage

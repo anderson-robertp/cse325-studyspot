@@ -1,8 +1,12 @@
+@page "/register"
+
+@rendermode InteractiveServer
+
 @using StudySpot.Services
 @using StudySpot.Models
 @using StudySpot.DTOs
 @using Microsoft.AspNetCore.Components.Forms
-@page "/register"
+
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
@@ -12,7 +16,7 @@
     <div class="auth-card">
         <h1>Create Account</h1>
 
-        <EditForm Model="registerModel" OnValidSubmit="HandleRegister">
+        <EditForm Model="registerModel" OnValidSubmit="HandleRegister" FormName="RegisterForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
 

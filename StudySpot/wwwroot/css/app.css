@@ -1,0 +1,423 @@
+html, body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+h1:focus {
+    outline: none;
+}
+
+a {
+    color: #0071c1;
+
+
+}
+
+.content {
+    padding: 1.1rem 1.5rem 2rem 2rem;
+}
+
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+button {
+    font: inherit;
+    padding: 8px 14px;
+    cursor: pointer;
+}
+
+.card {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    max-width: 400px;
+}
+
+
+.floor-tabs {
+    display: flex;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.floor-tab {
+    background-color: #e9f1fb;
+    border: 1px solid #9abce3;
+    border-radius: 6px;
+}
+
+.floor-tab.selected {
+    background-color: #1b6ec2;
+    color: white;
+}
+
+.floor-layout {
+    display: grid;
+    grid-template-columns: minmax(320px, 2fr) minmax(240px, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.map-card,
+.room-detail {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.map-image-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 820px;
+    margin: 0 auto;
+}
+
+.floor-map-image {
+    width: 100%;
+    display: block;
+    border: 1px solid #bbb;
+}
+
+.room-pin {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    min-width: 48px;
+    padding: 5px 7px;
+    border: 2px solid #222;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    background-color: #e9f1fb;
+}
+
+.room-pin.picked {
+    outline: 4px solid #1b6ec2;
+    background-color: #d7eaff;
+
+}
+
+.button-link {
+    background-color: #1b6ec2;
+    color: white;
+    border: 1px solid #155a9e;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-block;
+    padding: 8px 14px;
+}
+
+
+.button-link.secondary {
+    background-color: #f7f7f7;
+    color: #1b6ec2;
+}
+
+.reservation-actions {
+    display: flex;
+    gap: 12px;
+    margin: 16px 0 24px;
+}
+
+.calendar-controls {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: 900px;
+    margin: 18px 0;
+}
+
+.calendar-controls label {
+    display: grid;
+    gap: 6px;
+    font-weight: bold;
+}
+
+.calendar-controls select {
+    min-width: 220px;
+    padding: 8px;
+    border: 1px solid #9abce3;
+    border-radius: 6px;
+    background-color: white;
+}
+
+.calendar-controls div {
+    display: flex;
+    gap: 8px;
+}
+
+.calendar-controls button {
+    border: 1px solid #9abce3;
+    border-radius: 6px;
+    background-color: #f7f7f7;
+    color: #1b6ec2;
+}
+
+.calendar-preview {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(130px, 1fr));
+    gap: 10px;
+    max-width: 900px;
+    margin: 18px 0;
+}
+
+.calendar-preview > div {
+    min-height: 150px;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    padding: 10px;
+    background-color: #f7f7f7;
+}
+
+.calendar-preview span {
+    display: block;
+    margin: 4px 0 12px;
+    color: #555;
+}
+
+.calendar-preview p {
+    margin: 7px 0;
+    padding: 7px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.calendar-preview .slot-button {
+    display: block;
+    width: 100%;
+    margin: 7px 0;
+    padding: 7px;
+    border: 0;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+.calendar-preview .available {
+    background-color: #e9f1fb;
+    color: #155a9e;
+}
+
+.calendar-preview .available:hover {
+    background-color: #d7eaff;
+}
+
+.calendar-preview .reserved {
+    background-color: #dedede;
+    color: #333;
+    cursor: not-allowed;
+}
+
+.calendar-note {
+    max-width: 600px;
+    padding: 10px 12px;
+    border: 1px solid #9abce3;
+    border-radius: 6px;
+    background-color: #f3f8ff;
+    color: #155a9e;
+}
+
+.calendar-error {
+    max-width: 600px;
+    padding: 12px;
+    border: 1px solid #d99a9a;
+    border-radius: 6px;
+    background-color: #fff0f0;
+    color: #8a1f1f;
+}
+
+.appointments-table {
+    width: 100%;
+    max-width: 900px;
+    border-collapse: collapse;
+    margin-top: 18px;
+}
+
+.appointments-table th,
+.appointments-table td {
+    border-bottom: 1px solid #d7d7d7;
+    padding: 10px;
+    text-align: left;
+}
+
+.appointment-form {
+    max-width: 460px;
+    margin-top: 18px;
+    padding: 18px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f7f7f7;
+}
+
+.appointment-form label {
+    display: grid;
+    gap: 6px;
+    font-weight: bold;
+}
+
+.appointment-form .reservation-actions {
+    margin: 18px 0 0;
+}
+
+.appointment-cancel {
+    border: 1px solid #9abce3;
+    border-radius: 6px;
+    background-color: white;
+    color: #1b6ec2;
+}
+
+/* User account page */
+
+.account-details {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+}
+
+.account-detail-label {
+    font-weight: bold;
+}
+
+.account-detail {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.change-form {
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+    }
+}
+
+/* Login & Registration Pages */
+
+.alert {
+    display: block;
+    padding: 1rem;
+    border-radius: 10px;
+    margin: 0 0 1rem 0;
+}
+
+.alert-danger {
+    background-color: rgb(255, 166, 166);
+    
+}
+
+.auth-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 80px);
+    padding: 2rem 1rem;
+}
+
+.auth-card {
+    background: #ffffff;
+    border: 1px solid #e3e8ef;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(27,110,194,0.08);
+    padding: 2rem;
+    width: 100%;
+    max-width: 420px;
+}
+
+.auth-card h1 {
+    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+    color: #163b5a;
+}
+
+.form-group {
+    margin-bottom: 0.9rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #c7d2e0;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    transition: box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #1b6ec2;
+    box-shadow: 0 0 0 3px rgba(27,110,194,0.08);
+}
+
+.auth-footer {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #566b7a;
+}
+
+.auth-footer a {
+    color: #1b6ec2;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background-color: #1b6ec2;
+    color: #fff;
+    border: 1px solid #155a9e;
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+}
+
+.btn-primary[disabled] {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+@media (max-width: 520px) {
+    .auth-card { padding: 1.25rem; }
+    .auth-card h1 { font-size: 1.25rem; }
+}
+
+
+
+
+@media (max-width: 800px) {
+    .floor-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .room-pin {
+        min-width: 38px;
+        padding: 4px 5px;
+        font-size: 0.75rem;
+    }
+
+    .calendar-controls {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .calendar-preview {
+        grid-template-columns: 1fr;
+    }
+}

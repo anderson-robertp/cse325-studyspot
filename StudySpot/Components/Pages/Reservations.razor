@@ -1,9 +1,8 @@
 @page "/reservations"
-@using System.Net
-@using System.Net.Http.Json
 @using StudySpot.Models
-@using StudySpot.DTOs
-@inject HttpClient Http
+@using StudySpot.Services
+@inject ReservationService ReservationService
+@inject RoomService RoomService
 
 <PageTitle>Appointments</PageTitle>
 
@@ -11,23 +10,14 @@
 
 <div class="reservation-actions">
     <a class="button-link" href="/floor-plan">View Floor Plan</a>
-    <a class="button-link secondary" href="/reservation-calendar">Make Appointment</a>
+    <a class="button-link secondary" href="/reservation-calendar">
+        Make Appointment
+    </a>
 </div>
-
-
-
-
 
 @if (loading)
 {
     <p>Loading appointments...</p>
-}
-else if (needsLogin)
-{
-    <p class="calendar-note">
-        Log in to view your appointments.
-        <a href="/login">Login</a>
-    </p>
 }
 else if (!string.IsNullOrWhiteSpace(message))
 {
@@ -48,16 +38,31 @@ else
                 <th></th>
             </tr>
         </thead>
+
         <tbody>
             @foreach (var reservation in reservations)
             {
                 <tr>
                     <td>@RoomName(reservation.RoomId)</td>
-                    <td>@reservation.StartTime.ToString("MMM d, yyyy")</td>
-                    <td>@reservation.StartTime.ToString("h:mm tt") - @reservation.EndTime.ToString("h:mm tt")</td>
+
                     <td>
-                        <a class="button-link secondary" href="@($"/appointments/edit/{reservation.ReservationId}")">Edit</a>
-                        <button disabled="@deleting" @onclick="() => DeleteReservation(reservation.ReservationId)">
+                        @reservation.StartTime.ToString("MMM d, yyyy")
+                    </td>
+
+                    <td>
+                        @reservation.StartTime.ToString("h:mm tt")
+                        -
+                        @reservation.EndTime.ToString("h:mm tt")
+                    </td>
+
+                    <td>
+                        <a class="button-link secondary"
+                           href="@($"/appointments/edit/{reservation.ReservationId}")">
+                            Edit
+                        </a>
+
+                        <button disabled="@deleting"
+                                @onclick="() => DeleteReservation(reservation.ReservationId)">
                             Delete
                         </button>
                     </td>
@@ -67,16 +72,14 @@ else
     </table>
 }
 
-
-
-
-
-@code {
+@code
+{
     private List<Reservation> reservations = new();
     private List<Room> rooms = new();
+
     private bool loading = true;
     private bool deleting;
-    private bool needsLogin;
+
     private string message = "";
 
     protected override async Task OnInitializedAsync()
@@ -84,46 +87,28 @@ else
         await LoadAppointments();
     }
 
-
-
-
     private async Task LoadAppointments()
     {
         loading = true;
         message = "";
-        needsLogin = false;
 
         try
         {
-            var response = await Http.GetAsync("api/Reservation/mine");
+            reservations =
+                await ReservationService.GetMyReservationsAsync();
 
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                needsLogin = true;
-                return;
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
-                message = "Could not load your appointments.";
-                return;
-            }
-
-            reservations = await response.Content.ReadFromJsonAsync<List<Reservation>>() ?? new();
-            rooms = await Http.GetFromJsonAsync<List<Room>>("api/Rooms") ?? new();
+            rooms =
+                await RoomService.GetRoomsAsync();
         }
-        catch (HttpRequestException)
+        catch (Exception ex)
         {
-            message = "Start the server project to load appointments.";
+            message = $"Could not load your appointments: {ex.Message}";
         }
         finally
         {
             loading = false;
         }
     }
-
-
-
 
     private async Task DeleteReservation(Guid reservationId)
     {
@@ -132,24 +117,15 @@ else
 
         try
         {
-            var response = await Http.DeleteAsync($"api/Reservation/{reservationId}");
+            await ReservationService.DeleteReservationAsync(reservationId);
 
-            if (response.IsSuccessStatusCode)
-            {
-                reservations.RemoveAll(reservation => reservation.ReservationId == reservationId);
-            }
-            else if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                needsLogin = true;
-            }
-            else
-            {
-                message = "Could not delete that appointment.";
-            }
+            reservations.RemoveAll(
+                reservation =>
+                    reservation.ReservationId == reservationId);
         }
-        catch (HttpRequestException)
+        catch (Exception ex)
         {
-            message = "Start the server project to delete appointments.";
+            message = $"Could not delete that appointment: {ex.Message}";
         }
         finally
         {
@@ -159,7 +135,9 @@ else
 
     private string RoomName(long roomId)
     {
-        var room = rooms.FirstOrDefault(room => room.RoomId == roomId);
+        var room = rooms.FirstOrDefault(
+            room => room.RoomId == roomId);
+
         return room?.RoomName ?? $"Room {roomId}";
     }
 }
