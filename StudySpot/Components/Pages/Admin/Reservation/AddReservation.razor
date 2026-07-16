@@ -51,15 +51,20 @@
 
     private async Task HandleValidSubmit()
     {
-        // Call the ReservationService to add the new reservation
-        var addedReservation = await ReservationService.CreateReservationAsync(newReservation);
+        var success = await ReservationService.CreateReservationAsync(newReservation);
 
-        if (addedReservation != null)
+        if (success)
         {
-            successMessage = $"Reservation '{addedReservation.ReservationId}' added successfully!";
-            NotificationService.ShowSuccess($"Reservation '{addedReservation.ReservationId}' added successfully.");
-            // Optionally, reset the form or navigate back to the reservation manager page
-            newReservation = new Reservation(); // Reset the form
+            successMessage = "Reservation added successfully.";
+            NotificationService.ShowSuccess("Reservation added successfully.");
+
+            // Reset the form
+            newReservation = new Reservation();
+        }
+        else
+        {
+            successMessage = "Unable to add reservation. The room may already be reserved during that time.";
+            NotificationService.ShowError("Unable to add reservation.");
         }
     }
 }

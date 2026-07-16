@@ -12,26 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-
-// Load .env file
-var envFile = Path.Combine(
-    builder.Environment.ContentRootPath,
-    ".env");
-
-if (File.Exists(envFile))
-{
-    foreach (var line in File.ReadAllLines(envFile))
-    {
-        var parts = line.Split('=', 2);
-
-        if (parts.Length == 2)
-        {
-            Environment.SetEnvironmentVariable(
-                parts[0].Trim(),
-                parts[1].Trim());
-        }
-    }
-}
+Console.WriteLine(builder.Environment.EnvironmentName);
 
 // Blazor
 builder.Services
@@ -41,16 +22,20 @@ builder.Services
 builder.Services.AddCascadingAuthenticationState();
 
 // Configuration
-builder.Configuration.AddUserSecrets<Program>();
+//builder.Configuration.AddUserSecrets<Program>();
 
-// JWT Configuration
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new Exception("JWT Key is missing from configuration.");
+
 
 // Database
 var connectionString =
     builder.Configuration.GetConnectionString(
-        "DefaultConnection");
+        "DefaultConnection")
+        ?? throw new InvalidOperationException(
+        "Database connection string is missing.");
+
+// JWT Configuration
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new Exception("JWT Key is missing from configuration.");
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {

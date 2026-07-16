@@ -7,6 +7,11 @@ public class NotificationService
         SuccessMessage = message;
     }
 
+    public void ShowError(string message)
+    {
+        SuccessMessage = message;
+    }
+
     public void Clear()
     {
         SuccessMessage = null;

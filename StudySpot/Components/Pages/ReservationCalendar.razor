@@ -5,7 +5,8 @@
 @using StudySpot.DTOs
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthStateProvider
-@inject HttpClient Http
+@inject StudySpot.Services.ReservationService ReservationService
+@inject StudySpot.Services.RoomService RoomService
 @inject NavigationManager Navigation
 
 <PageTitle>Reservation Calendar</PageTitle>
@@ -108,7 +109,7 @@ else
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             isLoggedIn = authState.User.Identity?.IsAuthenticated == true;
 
-            rooms = await Http.GetFromJsonAsync<List<Room>>("api/Rooms") ?? new();
+            rooms = await RoomService.GetRoomsAsync() ?? new();
 
             var requestedRoom = rooms.FirstOrDefault(room =>
                 room.RoomName.Equals(Room, StringComparison.OrdinalIgnoreCase));
@@ -145,9 +146,12 @@ else
             return;
         }
 
-        var start = weekStart.ToDateTime(TimeOnly.MinValue).ToString("yyyy-MM-dd");
-        slots = await Http.GetFromJsonAsync<List<AppointmentSlot>>(
-            $"api/Reservation/slots?roomId={selectedRoomId}&weekStart={start}") ?? new();
+        var start = weekStart.ToDateTime(TimeOnly.MinValue);
+
+        slots = await ReservationService.GetSlotsAsync(
+            selectedRoomId,
+            start
+        );
     }
 
     private async Task ReserveSlot(AppointmentSlot slot)
@@ -162,6 +166,7 @@ else
         {
             return;
         }
+    
 
         saving = true;
         saveMessage = "";
@@ -174,29 +179,29 @@ else
             Status = "Reserved"
         };
 
-        var response = await Http.PostAsJsonAsync("api/Reservation", reservation);
+        try
+        {
+            var success = await ReservationService.CreateReservationAsync(reservation);
 
-        if (response.IsSuccessStatusCode)
-        {
-            saveMessage = "Reservation saved.";
-            await LoadSlots();
+            if (success)
+            {
+                saveMessage = "Reservation saved.";
+                await LoadSlots();
+            }
+            else
+            {
+                saveMessage = "That time is already reserved.";
+                await LoadSlots();
+            }
         }
-        else if (response.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            isLoggedIn = false;
-            saveMessage = "Log in to reserve an appointment.";
-        }
-        else if (response.StatusCode == HttpStatusCode.Conflict)
-        {
-            saveMessage = "That time is already reserved.";
-            await LoadSlots();
-        }
-        else
+        catch (Exception)
         {
             saveMessage = "Could not save that reservation.";
         }
-
-        saving = false;
+        finally
+        {
+            saving = false;
+        }
     }
 
 

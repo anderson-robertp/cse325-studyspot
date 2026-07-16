@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("StudySpot")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+615e1c12901fbee3f577757d89133045d2b231e2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9e2af2741ca35ec7ec1df1e3932e44cd7cce9b26")]
 [assembly: System.Reflection.AssemblyProductAttribute("StudySpot")]
 [assembly: System.Reflection.AssemblyTitleAttribute("StudySpot")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

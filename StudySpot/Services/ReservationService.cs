@@ -29,11 +29,28 @@ public class ReservationService
         return reservation;
     }
 
-    public async Task<Reservation> CreateReservationAsync(Reservation reservation)
+    public async Task<bool> CreateReservationAsync(Reservation reservation)
     {
+        var conflict = await _context.Reservations
+        .AnyAsync(r =>
+            r.RoomId == reservation.RoomId &&
+            r.Status != "Canceled" &&
+            r.StartTime < reservation.EndTime &&
+            r.EndTime > reservation.StartTime);
+
+        if (conflict)
+        {
+            return false;
+        }
+
+        reservation.ReservationId = Guid.NewGuid();
+        reservation.CreatedAt = DateTime.UtcNow;
+
         _context.Reservations.Add(reservation);
+
         await _context.SaveChangesAsync();
-        return reservation;
+
+        return true;
     }
 
     public async Task<Reservation> UpdateReservationAsync(Reservation reservation)
@@ -118,5 +135,54 @@ public class ReservationService
             .Where(r => r.UserId == currentUserGuid)
             .OrderBy(r => r.StartTime)
             .ToListAsync();
+    }
+
+    public async Task<List<AppointmentSlot>> GetSlotsAsync(long roomId, DateTime? weekStart)
+    {
+        var pickedDate = weekStart?.Date ?? DateTime.UtcNow.Date;
+        var firstDay = DateTime.SpecifyKind(StartOfWeek(pickedDate), DateTimeKind.Utc);
+        var lastDay = firstDay.AddDays(5);
+
+        var reservations = await _context.Reservations
+            .Where(reservation =>
+                reservation.RoomId == roomId &&
+                reservation.StartTime < lastDay.AddHours(17) &&
+                reservation.EndTime > firstDay.AddHours(10) &&
+                (reservation.Status == null || reservation.Status != "Canceled"))
+            .ToListAsync();
+
+        var slots = new List<AppointmentSlot>();
+
+        for (var day = 0; day < 5; day++)
+        {
+            var date = firstDay.AddDays(day);
+
+            for (var hour = 10; hour < 17; hour++)
+            {
+                var start = date.AddHours(hour);
+                var end = start.AddHours(1);
+
+                var reservation = reservations.FirstOrDefault(item =>
+                    item.StartTime < end && item.EndTime > start);
+
+                slots.Add(new AppointmentSlot
+                {
+                    RoomId = roomId,
+                    StartTime = start,
+                    EndTime = end,
+                    IsAvailable = reservation == null,
+                    ReservationId = reservation?.ReservationId
+                });
+            }
+        }
+
+        return slots;
+    }
+
+    private static DateTime StartOfWeek(DateTime date)
+    {
+        var diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
+
+        return date.AddDays(-diff).Date;
     }
 }
