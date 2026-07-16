@@ -3,16 +3,19 @@ using StudySpot.Models;
 using StudySpot.DTOs;
 using Microsoft.EntityFrameworkCore;
 using StudySpot.Data;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace StudySpot.Services;
 
 public class RoomService
 {
     private readonly StudySpotContext _context;
+    private readonly AuthenticationStateProvider _authenticationStateProvider;
 
-    public RoomService(StudySpotContext context)
+    public RoomService(StudySpotContext context, AuthenticationStateProvider authenticationStateProvider)
     {
         _context = context;
+        _authenticationStateProvider = authenticationStateProvider;
     }
 
     public async Task<List<Room>> GetRoomsAsync()
