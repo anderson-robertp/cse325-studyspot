@@ -27,8 +27,9 @@ public class AuthService
     {
         try
         {
+            var normalizedEmail = email.Trim().ToLowerInvariant();
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == email);
+                .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
 
             if (user == null)
             {
@@ -83,6 +84,8 @@ public class AuthService
     {
         try
         {
+            var normalizedEmail = email.Trim().ToLowerInvariant();
+
             if (password != confirmPassword)
             {
                 return new AuthResponse
@@ -93,7 +96,7 @@ public class AuthService
             }
 
             var emailExists = await _context.Users
-                .AnyAsync(u => u.Email == email);
+                .AnyAsync(u => u.Email == normalizedEmail);
 
             if (emailExists)
             {
@@ -109,8 +112,9 @@ public class AuthService
                 UserId = Guid.NewGuid(),
                 FirstName = firstName,
                 LastName = lastName,
-                Email = email,
+                Email = normalizedEmail,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+                Role = "user",
                 IsActive = true
             };
 

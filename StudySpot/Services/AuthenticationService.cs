@@ -42,7 +42,8 @@ public class AuthenticationService
 
     public async Task<User?> AuthenticateSync(string email, string password)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
         if (user == null) return null;
 
         if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
