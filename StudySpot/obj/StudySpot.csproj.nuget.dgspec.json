@@ -1,37 +1,30 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Code\\cse325-studyspot\\StudySpot\\StudySpot.csproj": {}
+    "C:\\Users\\whitt\\Desktop\\⠀\\CSE325project\\CSE325-Study-Spot\\StudySpot\\StudySpot.csproj": {}
   },
   "projects": {
-    "C:\\Code\\cse325-studyspot\\StudySpot\\StudySpot.csproj": {
+    "C:\\Users\\whitt\\Desktop\\⠀\\CSE325project\\CSE325-Study-Spot\\StudySpot\\StudySpot.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Code\\cse325-studyspot\\StudySpot\\StudySpot.csproj",
+        "projectUniqueName": "C:\\Users\\whitt\\Desktop\\⠀\\CSE325project\\CSE325-Study-Spot\\StudySpot\\StudySpot.csproj",
         "projectName": "StudySpot",
-        "projectPath": "C:\\Code\\cse325-studyspot\\StudySpot\\StudySpot.csproj",
-        "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-        "outputPath": "C:\\Code\\cse325-studyspot\\StudySpot\\obj\\",
+        "projectPath": "C:\\Users\\whitt\\Desktop\\⠀\\CSE325project\\CSE325-Study-Spot\\StudySpot\\StudySpot.csproj",
+        "packagesPath": "C:\\Users\\whitt\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\whitt\\Desktop\\⠀\\CSE325project\\CSE325-Study-Spot\\StudySpot\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\whitt\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net10.0": {
-            "framework": "net10.0",
             "targetAlias": "net10.0",
             "projectReferences": {}
           }
@@ -46,11 +39,10 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.300"
+        "SdkAnalysisLevel": "10.0.100"
       },
       "frameworks": {
         "net10.0": {
-          "framework": "net10.0",
           "targetAlias": "net10.0",
           "dependencies": {
             "BCrypt.Net-Next": {
@@ -64,7 +56,7 @@
             "Microsoft.AspNetCore.App.Internal.Assets": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[10.0.9, )",
+              "version": "[10.0.1, )",
               "autoReferenced": true
             },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
@@ -109,7 +101,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.301/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
