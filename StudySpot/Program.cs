@@ -1,6 +1,7 @@
 using System.Text;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -20,6 +21,7 @@ builder.Services
     .AddInteractiveServerComponents();
 
 builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddControllers();
 
 // Configuration
 //builder.Configuration.AddUserSecrets<Program>();
@@ -27,11 +29,7 @@ builder.Services.AddCascadingAuthenticationState();
 
 
 // Database
-var connectionString =
-    builder.Configuration.GetConnectionString(
-        "DefaultConnection")
-        ?? throw new InvalidOperationException(
-        "Database connection string is missing.");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // JWT Configuration
 var jwtKey = builder.Configuration["Jwt:Key"]
@@ -49,6 +47,11 @@ if (string.IsNullOrWhiteSpace(connectionString))
         "Trust Server Certificate=true";
 }
 
+if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("Host=;"))
+{
+    throw new InvalidOperationException("Database connection string is missing.");
+}
+
 builder.Services.AddDbContext<StudySpotContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -61,6 +64,18 @@ builder.Services.AddScoped<RoomAmenityService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<JwtAuthorizationMessageHandler>();
+builder.Services.AddScoped<HttpClient>(provider =>
+{
+    var navigation = provider.GetRequiredService<NavigationManager>();
+    var handler = provider.GetRequiredService<JwtAuthorizationMessageHandler>();
+    handler.InnerHandler = new HttpClientHandler();
+
+    return new HttpClient(handler)
+    {
+        BaseAddress = new Uri(navigation.BaseUri)
+    };
+});
 
 
 // Local storage
@@ -117,5 +132,7 @@ app.MapStaticAssets();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapControllers();
 
 app.Run();
