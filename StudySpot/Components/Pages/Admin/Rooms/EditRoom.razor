@@ -17,7 +17,9 @@
     }
 </div>
 
-<form method="post" @onsubmit="HandleValidSubmit" formname="editRoomForm">
+<EditForm Model="room" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
     <!-- Add form fields for room details here -->
     <div class="form-group">
         <label for="roomName">Room Name</label>
@@ -58,7 +60,7 @@
     <button type="button" 
         class="btn btn-secondary" 
         @onclick='() => NavigationManager.NavigateTo("/admin/roommanager")''>Cancel</button>
-</form>
+</EditForm>
 
 @code
 {
@@ -89,15 +91,16 @@
         {
             successMessage = "Invalid room ID.";
         }
+        Console.WriteLine("Room ID:" + id);
         allAmenities = await AmenityService.GetAmenitiesAsync();
         assignedAmenities = (await RoomAmenityService
             .GetAmenitiesByRoomIdAsync(id))
             .ToList();
+        Console.WriteLine($"Assigned: {string.Join(", ", assignedAmenities)}");
         foreach (AmenitySelectionDto amenity in allAmenities)
         {
             amenity.IsSelected = assignedAmenities.Contains(amenity.AmenityId);
         }
-        
     }
 
     private async Task HandleValidSubmit()
@@ -109,19 +112,23 @@
             .Where(a => a.IsSelected)
             .Select(a => a.AmenityId)
             .ToList();
-
+        var toAdd = selectedIds.Except(assignedAmenities);
+        var toRemove = assignedAmenities.Except(selectedIds);
+        
         if (updatedRoom != null)
         {
-            foreach (var amenityId in selectedIds)
+            foreach (var amenityId in toAdd)
             {
-                if (!assignedAmenities.Contains(amenityId))
+                await RoomAmenityService.CreateRoomAmenityAsync(new RoomAmenity
                 {
-                    await RoomAmenityService.CreateRoomAmenityAsync(new RoomAmenity
-                    {
-                        RoomId = room.RoomId,
-                        AmenityId = amenityId
-                    });
-                }
+                    RoomId = room.RoomId,
+                    AmenityId = amenityId
+                });
+            }
+
+            foreach (var amenityId in toRemove)
+            {
+                await RoomAmenityService.DeleteRoomAmenityAsync(room.RoomId, amenityId);
             }
             successMessage = "Room updated successfully!";
             NotificationService.ShowSuccess($"Room '{updatedRoom.RoomName}' updated successfully.");

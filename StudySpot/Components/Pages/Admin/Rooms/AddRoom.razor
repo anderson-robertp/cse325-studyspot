@@ -17,7 +17,9 @@
 
 <div>
     <p>This is the add room page.</p>
-    <form method="post" @onsubmit="HandleValidSubmit" formname="addRoomForm">
+    <EditForm Model="newRoom" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
         <!-- Add form fields for room details here -->
         <div class="form-group">
             <label for="roomName">Room Name</label>
@@ -41,7 +43,7 @@
         </div>
         <button type="submit" class="btn btn-primary">Add Room</button>
 
-    </form>
+    </EditForm>
 </div>
 <div>
     <!-- Back to Room Manager button -->

@@ -26,10 +26,20 @@ public class RoomAmenityService
         return roomAmenity;
     }
 
-    public async Task<RoomAmenity> CreateRoomAmenityAsync(RoomAmenity roomAmenity)
+    public async Task<RoomAmenity?> CreateRoomAmenityAsync(RoomAmenity roomAmenity)
     {
+        var exists = await _context.RoomAmenity.AnyAsync(x =>
+            x.RoomId == roomAmenity.RoomId &&
+            x.AmenityId == roomAmenity.AmenityId);
+
+        if (exists)
+        {
+            return null;
+        }
+
         _context.RoomAmenity.Add(roomAmenity);
         await _context.SaveChangesAsync();
+
         return roomAmenity;
     }
 
@@ -46,6 +56,15 @@ public class RoomAmenityService
             .Where(ra => ra.RoomId == roomId)
             .Select(ra => ra.AmenityId)
             .ToListAsync();
+        foreach (var item in amenities)
+        {
+            Console.WriteLine(item);
+        }
         return amenities ?? new List<long>();
+    }
+
+    public async Task DeleteRoomAmenityAsync(long roomId, long amenityId)
+    {
+        
     }
 }

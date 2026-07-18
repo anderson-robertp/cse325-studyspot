@@ -19,7 +19,9 @@
 
 <div>
     <p>This is the edit amenity page.</p>
-    <form method="post" @onsubmit="HandleValidSubmit" formname="editAmenityForm">
+    <EditForm Model="editAmenity" OnInvalidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
         <!-- Add form fields for amenity details here -->
         <div class="form-group">
             <label for="amenityName">Amenity Name</label>
@@ -30,7 +32,7 @@
             <textarea id="description" class="form-control" @bind="editAmenity.Description"></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Update Amenity</button>
-    </form>
+    </EditForm>
 </div>
 
 <div>

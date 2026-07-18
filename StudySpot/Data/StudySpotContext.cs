@@ -89,7 +89,7 @@ public class StudySpotContext : DbContext
         {
             entity.ToTable("Room_amenities");
 
-            entity.HasKey(ra => new { ra.RoomId, ra.AmenityId });
+            entity.HasKey(ra => new { ra.RoomAmenityId});
             entity.Property(ra => ra.RoomAmenityId).HasColumnName("room_amenity_id");
             entity.Property(ra => ra.RoomId).HasColumnName("room_id");
             entity.Property(ra => ra.AmenityId).HasColumnName("amenity_id");

@@ -22,7 +22,9 @@
 
 <div>
     <p>This is the edit reservation page.</p>
-    <form Model="@editReservation" OnValidSubmit="HandleValidSubmit" formname="editReservationForm">
+    <EditForm Model="@editReservation" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
         <!-- Add form fields for reservation details here -->
         <div class="form-group">
             <label for="startDate">Start Date</label>
@@ -41,7 +43,7 @@
             <input type="number" id="userId" class="form-control" @bind="editReservation.UserId" required />
         </div>
         <button type="submit" class="btn btn-primary">Update Reservation</button>
-    </form>
+    </EditForm>
 </div>
 
 <div>
