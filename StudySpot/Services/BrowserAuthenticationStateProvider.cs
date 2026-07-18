@@ -2,7 +2,7 @@
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
-using System.Text.Json;
+using System.IdentityModel.Tokens.Jwt;
 
 public class BrowserAuthenticationStateProvider : AuthenticationStateProvider
 {
@@ -20,7 +20,7 @@ public class BrowserAuthenticationStateProvider : AuthenticationStateProvider
         var identity = new ClaimsIdentity();
         if (!string.IsNullOrEmpty(token))
         {
-            identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
+            identity = CreateIdentity(token);
         }
 
         return new AuthenticationState(new ClaimsPrincipal(identity));
@@ -29,7 +29,7 @@ public class BrowserAuthenticationStateProvider : AuthenticationStateProvider
     public async Task NotifyUserAuthenticationAsync(string token)
     {
         await _localStorage.SetItemAsync("authToken", token);
-        var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
+        var identity = CreateIdentity(token);
         var user = new ClaimsPrincipal(identity);
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
     }
@@ -42,22 +42,9 @@ public class BrowserAuthenticationStateProvider : AuthenticationStateProvider
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
     }
 
-    private static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
+    private static ClaimsIdentity CreateIdentity(string jwt)
     {
-        var payload = jwt.Split('.')[1];
-        var jsonBytes = ParseBase64WithoutPadding(payload);
-        var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
-
-        return keyValuePairs?.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString() ?? "")) ?? new List<Claim>();
-    }
-
-    private static byte[] ParseBase64WithoutPadding(string base64)
-    {
-        switch (base64.Length % 4)
-        {
-            case 2: base64 += "=="; break;
-            case 3: base64 += "="; break;
-        }
-        return Convert.FromBase64String(base64);
+        var claims = new JwtSecurityTokenHandler().ReadJwtToken(jwt).Claims;
+        return new ClaimsIdentity(claims, "jwt", JwtRegisteredClaimNames.Email, "role");
     }
 }

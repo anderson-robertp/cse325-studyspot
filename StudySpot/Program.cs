@@ -80,6 +80,9 @@ builder.Services.AddScoped<HttpClient>(provider =>
 
 // Local storage
 builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddScoped<BrowserAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
+    provider.GetRequiredService<BrowserAuthenticationStateProvider>());
 
 // Authentication
 builder.Services

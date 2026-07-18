@@ -37,8 +37,8 @@ public class UserService
 
         var principal = authenticationState.User;
 
-        var userIdClaim = principal.FindFirst(
-            System.Security.Claims.ClaimTypes.NameIdentifier);
+        var userIdClaim = principal.FindFirst("sub")
+            ?? principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
 
         if (userIdClaim == null ||
             !Guid.TryParse(userIdClaim.Value, out var userId))
