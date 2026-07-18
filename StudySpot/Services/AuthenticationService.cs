@@ -19,14 +19,14 @@ public class AuthenticationService
 
     public string GenerateToken(User user)
     {
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"]!));
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
         {
-          new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-          new Claim(ClaimTypes.Email, user.Email),
-          new Claim(ClaimTypes.Role, user.Role)  
+          new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
+          new Claim(JwtRegisteredClaimNames.Email, user.Email),
+          new Claim("role", user.Role)  
         };
 
         var token = new JwtSecurityToken(
@@ -42,7 +42,8 @@ public class AuthenticationService
 
     public async Task<User?> AuthenticateSync(string email, string password)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
         if (user == null) return null;
 
         if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))

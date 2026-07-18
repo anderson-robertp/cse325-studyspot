@@ -3,6 +3,7 @@ using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using System.Text.Json;
+using System.IdentityModel.Tokens.Jwt;
 
 public class BrowserAuthenticationStateProvider : AuthenticationStateProvider
 {
@@ -20,7 +21,7 @@ public class BrowserAuthenticationStateProvider : AuthenticationStateProvider
         var identity = new ClaimsIdentity();
         if (!string.IsNullOrEmpty(token))
         {
-            identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
+            identity = CreateIdentity(token);
         }
 
         return new AuthenticationState(new ClaimsPrincipal(identity));
@@ -29,7 +30,7 @@ public class BrowserAuthenticationStateProvider : AuthenticationStateProvider
     public async Task NotifyUserAuthenticationAsync(string token)
     {
         await _localStorage.SetItemAsync("authToken", token);
-        var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
+        var identity = CreateIdentity(token);
         var user = new ClaimsPrincipal(identity);
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
     }
@@ -42,13 +43,16 @@ public class BrowserAuthenticationStateProvider : AuthenticationStateProvider
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
     }
 
-    private static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
+    private static ClaimsIdentity CreateIdentity(string jwt)
     {
-        var payload = jwt.Split('.')[1];
-        var jsonBytes = ParseBase64WithoutPadding(payload);
-        var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
+        var handler = new JwtSecurityTokenHandler();
+        var token = handler.ReadJwtToken(jwt);
 
-        return keyValuePairs?.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString() ?? "")) ?? new List<Claim>();
+        return new ClaimsIdentity(
+            token.Claims,
+            "jwt",
+            ClaimTypes.Email,
+            ClaimTypes.Role);
     }
 
     private static byte[] ParseBase64WithoutPadding(string base64)
