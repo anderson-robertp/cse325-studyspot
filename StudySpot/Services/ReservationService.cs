@@ -4,6 +4,7 @@ using StudySpot.DTOs;
 using Microsoft.EntityFrameworkCore;
 using StudySpot.Data;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Security.Claims;
 
 namespace StudySpot.Services;
 public class ReservationService
@@ -31,20 +32,37 @@ public class ReservationService
 
     public async Task<bool> CreateReservationAsync(Reservation reservation)
     {
+        var currentUserId = await GetCurrentUserIdAsync();
+        var start = DateTime.SpecifyKind(reservation.StartTime, DateTimeKind.Utc);
+        var end = DateTime.SpecifyKind(reservation.EndTime, DateTimeKind.Utc);
+
+        if (end <= start)
+        {
+            throw new InvalidOperationException("Pick a valid reservation time.");
+        }
+
         var conflict = await _context.Reservations
         .AnyAsync(r =>
             r.RoomId == reservation.RoomId &&
-            r.Status != "Canceled" &&
-            r.StartTime < reservation.EndTime &&
-            r.EndTime > reservation.StartTime);
+            (r.Status == null || r.Status != "Canceled") &&
+            r.StartTime < end &&
+            r.EndTime > start);
 
         if (conflict)
         {
             return false;
         }
 
+        var now = DateTime.UtcNow;
         reservation.ReservationId = Guid.NewGuid();
-        reservation.CreatedAt = DateTime.UtcNow;
+        reservation.UserId = currentUserId;
+        reservation.StartTime = start;
+        reservation.EndTime = end;
+        reservation.CreatedAt = now;
+        reservation.UpdatedAt = now;
+        reservation.Status = string.IsNullOrWhiteSpace(reservation.Status)
+            ? "Reserved"
+            : reservation.Status;
 
         _context.Reservations.Add(reservation);
 
@@ -62,7 +80,10 @@ public class ReservationService
 
     public async Task DeleteReservationAsync(Guid reservationId)
     {
-        var reservation = await _context.Reservations.FindAsync(reservationId);
+        var currentUserId = await GetCurrentUserIdAsync();
+        var reservation = await _context.Reservations.FirstOrDefaultAsync(item =>
+            item.ReservationId == reservationId && item.UserId == currentUserId);
+
         if (reservation != null)
         {
             _context.Reservations.Remove(reservation);
@@ -127,14 +148,28 @@ public class ReservationService
     }
     public async Task<List<Reservation>> GetMyReservationsAsync()
     {
-        var authenticationState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authenticationState.User;
-        var currentUserId = user.FindFirst("sub")?.Value;
-        var currentUserGuid = Guid.Parse(currentUserId);
+        var currentUserId = await GetCurrentUserIdAsync();
+
         return await _context.Reservations
-            .Where(r => r.UserId == currentUserGuid)
+            .Where(r =>
+                r.UserId == currentUserId &&
+                (r.Status == null || r.Status != "Canceled"))
             .OrderBy(r => r.StartTime)
             .ToListAsync();
+    }
+
+    private async Task<Guid> GetCurrentUserIdAsync()
+    {
+        var authenticationState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var userIdValue = authenticationState.User.FindFirst("sub")?.Value
+            ?? authenticationState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdValue, out var userId))
+        {
+            throw new UnauthorizedAccessException("Log in before managing reservations.");
+        }
+
+        return userId;
     }
 
     public async Task<List<AppointmentSlot>> GetSlotsAsync(long roomId, DateTime? weekStart)
