@@ -2,6 +2,7 @@
 
 @inject AmenityService AmenityService
 @inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
 
 @rendermode InteractiveServer
 
@@ -18,7 +19,7 @@
     </div>
 </div>
 
-@if (!string.IsNullOrEmpty(NotificationService.SuccessMessage))
+@if (!string.IsNullOrEmpty(successMessage))
 {
     <div class="alert alert-success">
         @NotificationService.SuccessMessage
@@ -28,7 +29,7 @@
 <div class="mt-4">
     <h3>Manage Amenities</h3>
     <div class="btn-group" role="group">
-        <NavLink class="btn btn-primary" href="admin/amenitymanager/addamenity">Add Amenity</NavLink>
+        <NavLink class="btn btn-primary" href="admin/amenitymanager/add">Add Amenity</NavLink>
     </div>
     <!-- Example: Display a list of amenities -->
     <table class="table">
@@ -48,8 +49,8 @@
                     <td>@amenity.Description</td>
                     <td>
                         <!-- Add buttons for editing and deleting amenities -->
-                        <button class="btn btn-sm btn-primary">Edit</button>
-                        <button class="btn btn-sm btn-danger">Delete</button>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditAmenity(amenity.AmenityId)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteAmenity(amenity.AmenityId)">Delete</button>
                     </td>
                 </tr>
             }
@@ -60,6 +61,22 @@
 @code {
 
     private List<AmenitySelectionDto> Amenities { get; set; } = new List<AmenitySelectionDto>();
+    
+    private string? successMessage;
+    
+    private void EditAmenity(long amenityId)
+    {
+        NavigationManager.NavigateTo($"/admin/amenitymanager/edit/{amenityId}");
+    }
+
+    private async Task DeleteAmenity(long amenityId)
+    {
+        // Call the AmenityService to delete the amenity
+        await AmenityService.DeleteAmenityAsync(amenityId);
+        // Refresh the list of amenities after deletion
+        Amenities = await AmenityService.GetAmenitiesAsync();
+        successMessage = "Amenity deleted successfully.";
+    }
     
 
     protected override async Task OnInitializedAsync()

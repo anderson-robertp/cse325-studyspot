@@ -31,7 +31,7 @@
 
 <div>
     <h3>Add New User</h3>
-    <EditForm Model="@newUser" OnValidSubmit="HandleValidSubmit">
+    <EditForm Model="@newUser" OnValidSubmit="HandleValidSubmit" FormName="addUserForm">
         <DataAnnotationsValidator />
         <ValidationSummary />
 

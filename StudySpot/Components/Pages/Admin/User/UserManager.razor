@@ -94,6 +94,11 @@
     {
         // Fetch users from the UserService
         Users = await UserService.GetAllUsersAsync();
+        //Console.WriteLine($"Fetched {Users.Count} users.");
+        //foreach (var user in Users)
+        //{
+        //    Console.WriteLine($"User: {user.FirstName} {user.LastName}, Email: {user.Email}, Role: {user.Role}");
+        //}
     }
 
 }

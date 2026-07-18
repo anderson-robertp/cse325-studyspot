@@ -64,7 +64,8 @@ public class UserService
                 UserId = user.UserId,
                 Email = user.Email,
                 FirstName = user.FirstName,
-                LastName = user.LastName
+                LastName = user.LastName,
+                Role = user.Role
             })
             .ToListAsync();
     }
