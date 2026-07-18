@@ -50,10 +50,19 @@ public class UserService
             .FindAsync(userId);
     }   
 
-    public async Task<User?> GetUserByIdAsync(Guid id)
+    public async Task<UserEditDto?> GetUserByIdAsync(Guid id)
     {
         return await _context.Users
-            .FindAsync(id);
+            .Where(u => u.UserId == id)
+            .Select(user => new UserEditDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Role = user.Role
+            })
+            .FirstOrDefaultAsync();
     }
 
     public async Task<List<UserListDto>> GetAllUsersAsync()
@@ -70,7 +79,7 @@ public class UserService
             .ToListAsync();
     }
 
-    public async Task UpdateUserAsync(Guid id, User user)
+    public async Task UpdateUserAsync(Guid id, UserEditDto user)
     {
         var existingUser = await _context.Users
             .FindAsync(id);
